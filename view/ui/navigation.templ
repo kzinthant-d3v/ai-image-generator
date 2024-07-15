@@ -1,0 +1,28 @@
+package ui
+
+import "kzinthant-d3v/ai-image-generator/view"
+
+templ Navigation() {
+	<div class="navbar bg-base-100 border-b border-gray-700">
+		<div class="flex-1">
+			<a class="text-2xl font-black text-secondary">AI Image Generator</a>
+		</div>
+		<div class="flex-none">
+			<ul class="menu menu-horizontal px-1">
+				if view.AuthenticatedUser(ctx).LoggedIn {
+					<li>
+						<details>
+							<summary>{ view.AuthenticatedUser(ctx).Email }</summary>
+							<ul class="bg-base-100 rounded-t-none p-2">
+								<li><a>Settings</a></li>
+								<li><a>Logout</a></li>
+							</ul>
+						</details>
+					</li>
+				} else {
+					<a href="/login" class="btn btn-primary">Login</a>
+				}
+			</ul>
+		</div>
+	</div>
+}

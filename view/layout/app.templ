@@ -1,0 +1,24 @@
+package layout
+
+import "kzinthant-d3v/ai-image-generator/view/ui"
+
+templ App(showNav bool) {
+	<!DOCTYPE html>
+	<html lang="en" data-theme="dark">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>AI Image Generator</title>
+			<link rel="stylesheet" href="/public/styles.css"/>
+			<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+			<script src="https://unpkg.com/htmx.org@latest" defer></script>
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js" defer></script>
+		</head>
+		<body class="antialised">
+			if showNav {
+				@ui.Navigation()
+			}
+			{ children... }
+		</body>
+	</html>
+}

@@ -1,0 +1,142 @@
+package auth
+
+import (
+	"github.com/nedpals/supabase-go"
+	"kzinthant-d3v/ai-image-generator/view/layout"
+)
+
+templ SignUpSuccess(email string) {
+	<div>Confirmation email has been sent to: <span class="text-success font-bold">{ email }</span></div>
+}
+
+templ SignUp() {
+	@layout.App(false)
+	<div class="flex justify-center mt-[calc(8rem)]">
+		<div class="max-w-screen-sm w-full bg-base-300 py-10 px-16 rounded-xl">
+			<h1 class="text-center text-secondary text-xl mb-10">
+				@SignupForm(SignupParams{}, SignupErrors{})
+			</h1>
+		</div>
+	</div>
+}
+
+templ LogIn() {
+	@layout.App(false)
+	<div class="flex justify-center mt-[calc(8rem)]">
+		<div class="max-w-screen-sm w-full bg-base-300 py-10 px-16 rounded-xl">
+			<h1 class="text-center text-secondary text-xl mb-10">
+				Log In to AI Image Generator
+			</h1>
+			@LoginForm(supabase.UserCredentials{}, LoginErrors{})
+		</div>
+	</div>
+}
+
+type LoginErrors struct {
+	Email              string
+	Password           string
+	InvalidCredentials string
+}
+
+//hx-swap outerHTML will replace the form with the response from the server
+templ LoginForm(creds supabase.UserCredentials, errors LoginErrors) {
+	<form
+		hx-post="/login"
+		hx-swap="outerHTML"
+	>
+		<label class="form-control">
+			<div class="label">
+				<span class="label-text">Email</span>
+				<span class="label-text-alt">Email</span>
+			</div>
+			<input type="email" name="email" value={ creds.Email } placeholder="Email Address" class="input input-bordered w-full"/>
+			if len(errors.Email) > 0 {
+				<div class="label">
+					<span class="label-text-alt text-error">{ errors.Email }</span>
+				</div>
+			}
+		</label>
+		<label class="form-control">
+			<div class="label">
+				<span class="label-text">Password</span>
+				<span class="label-text-alt">Password</span>
+			</div>
+			<input type="password" name="password" placeholder="Password" class="input input-bordered w-full"/>
+			if len(errors.Password) > 0 {
+				<div class="label">
+					<span class="label-text-alt text-error">{ errors.Password }</span>
+				</div>
+			}
+		</label>
+		if len(errors.InvalidCredentials) > 0 {
+			<div class="text-sm text-error">
+				{ errors.InvalidCredentials }
+			</div>
+		}
+		<button class="btn btn-primary mt-8">
+			Login
+			<i class="fas fa-sign-in-alt"></i>
+		</button>
+	</form>
+}
+
+type SignupParams struct {
+	Email           string
+	Password        string
+	ConfirmPassword string
+}
+
+type SignupErrors struct {
+	Email              string
+	Password           string
+	ConfirmPassword    string
+	InvalidCredentials string
+}
+
+templ SignupForm(params SignupParams, errors SignupErrors) {
+	<form
+		hx-post="/signup"
+		hx-swap="outerHTML"
+	>
+		<label class="form-control">
+			<div class="label">
+				<span class="label-text">Email</span>
+				<span class="label-text-alt">Email</span>
+			</div>
+			<input type="email" name="email" value={ params.Email } placeholder="Email Address" class="input input-bordered w-full"/>
+			if len(errors.Email) > 0 {
+				<div class="label">
+					<span class="label-text-alt text-error">{ errors.Email }</span>
+				</div>
+			}
+		</label>
+		<label class="form-control">
+			<div class="label">
+				<span class="label-text">Password</span>
+				<span class="label-text-alt">Password</span>
+			</div>
+			<input type="password" name="password" placeholder="Password" class="input input-bordered w-full"/>
+			if len(errors.Password) > 0 {
+				<div class="label">
+					<span class="label-text-alt text-error">{ errors.Password }</span>
+				</div>
+			}
+		</label>
+		<label class="form-control">
+			<div class="label">
+				<span class="label-text">Confirm Password</span>
+				<span class="label-text-alt">Confirm Password</span>
+			</div>
+			<input type="password" name="confirmPassword" placeholder="Password" class="input input-bordered w-full"/>
+			if len(errors.ConfirmPassword) > 0 {
+				<div class="label">
+					<span class="label-text-alt text-error">{ errors.ConfirmPassword }</span>
+				</div>
+			}
+		</label>
+		<button class="btn btn-primary mt-8">
+			Login
+			<i class="fas fa-sign-in-alt"></i>
+		</button>
+	</form>
+}
