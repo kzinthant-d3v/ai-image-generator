@@ -14,8 +14,8 @@ templ Navigation() {
 						<details>
 							<summary>{ view.AuthenticatedUser(ctx).Email }</summary>
 							<ul class="bg-base-100 rounded-t-none p-2">
-								<li><a>Settings</a></li>
-								<li><a>Logout</a></li>
+								<li><a href="/settings">Settings</a></li>
+								@LogoutForm()
 							</ul>
 						</details>
 					</li>
@@ -25,4 +25,12 @@ templ Navigation() {
 			</ul>
 		</div>
 	</div>
+}
+
+templ LogoutForm() {
+	<form method="POST" action="/logout">
+		<li>
+			<button type="submit" class="btn btn-link">Logout</button>
+		</li>
+	</form>
 }

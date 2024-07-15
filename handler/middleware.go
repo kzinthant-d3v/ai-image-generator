@@ -2,9 +2,14 @@ package handler
 
 import (
 	"context"
+	"fmt"
+	"kzinthant-d3v/ai-image-generator/pkg/sb"
 	"kzinthant-d3v/ai-image-generator/types"
 	"net/http"
+	"os"
 	"strings"
+
+	"github.com/gorilla/sessions"
 )
 
 func getAuthenticatedUser(r *http.Request) types.AuthenticatedUser {
@@ -16,6 +21,21 @@ func getAuthenticatedUser(r *http.Request) types.AuthenticatedUser {
 	return types.AuthenticatedUser{}
 }
 
+func WithAuth(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.URL.Path, "/public") {
+			next.ServeHTTP(w, r)
+			return
+		}
+		user := getAuthenticatedUser(r)
+		if !user.LoggedIn {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+		next.ServeHTTP(w, r)
+	}
+	return http.HandlerFunc(fn)
+}
 func WithAuthUser(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(r.URL.Path, "/public") {
@@ -23,9 +43,36 @@ func WithAuthUser(next http.Handler) http.Handler {
 			return
 		}
 
-		user := types.AuthenticatedUser{}
-		ctx := context.WithValue(r.Context(), types.UserContextKey, user)
+		store := sessions.NewCookieStore([]byte(os.Getenv("SESSION_SECRET")))
+		session, err := store.Get(r, "user")
+		if err != nil {
+			next.ServeHTTP(w, r)
+			return
+		}
+		accessToken := session.Values["accessToken"]
+		if accessToken == nil {
+			next.ServeHTTP(w, r)
+			return
+		}
+		// accessToken, err := r.Cookie("at")
+		// if err != nil {
+		// 	fmt.Println(err)
+		// 	next.ServeHTTP(w, r)
+		// 	return
+		// }
+		res, err := sb.Client.Auth.User(r.Context(), accessToken.(string))
+		if err != nil {
+			fmt.Println(err)
+			next.ServeHTTP(w, r)
+			return
+		}
 
+		user := types.AuthenticatedUser{
+			Email:    res.Email,
+			LoggedIn: true,
+		}
+
+		ctx := context.WithValue(r.Context(), types.UserContextKey, user)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 	return http.HandlerFunc(fn)

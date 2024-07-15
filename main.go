@@ -34,8 +34,17 @@ func main() {
 	router.Get("/", handler.MakeHandler(handler.HandleHomeIndex))
 	router.Get("/login", handler.MakeHandler(handler.HandleLoginInIndex))
 	router.Post("/login", handler.MakeHandler(handler.HandleLoginInCreate))
+	router.Post("/logout", handler.MakeHandler(handler.HandleLogoutCreate))
 	router.Get("/signup", handler.MakeHandler(handler.HandleSignUpIndex))
 	router.Post("/signup", handler.MakeHandler(handler.HandleSignupCreate))
+	router.Get("/auth/callback", handler.MakeHandler(handler.HandleAuthCallback))
+	router.Get("/login/provider/google", handler.MakeHandler(handler.HandleLoginInWithGoogle))
+
+	router.Group(func(auth chi.Router) {
+		auth.Use(handler.WithAuth)
+		auth.Get("/settings", handler.MakeHandler(handler.HandleSettingsIndex))
+
+	})
 
 	port := os.Getenv("HTTP_LISTEN_ADDR")
 	slog.Info("Starting server on port address %s", port)
