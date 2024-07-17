@@ -5,6 +5,43 @@ import (
 	"kzinthant-d3v/ai-image-generator/view/layout"
 )
 
+templ AccountSetup() {
+	@layout.App(true) {
+		<div class="max-w-xl bg-base-300 px-6 py-12 w-full mx-auto mt-4 rounded-xl">
+			<h1 class="text-xl font-black mb-8 text-center">Setup your account</h1>
+			@AccountSetupForm(AccountSetupParams{}, AccountSetupErrors{})
+		</div>
+	}
+}
+
+type AccountSetupErrors struct {
+	Username string
+}
+
+type AccountSetupParams struct {
+	Username string
+}
+
+templ AccountSetupForm(parmas AccountSetupParams, errors AccountSetupErrors) {
+	<form
+		hx-post="/account/setup"
+		hx-swap="outerHTML"
+	>
+		<label class="form-control w-full max-w-xs">
+			<div class="label">
+				<span class="label-text">Enter your username</span>
+			</div>
+			<input class="input input-bordered" type="text" name="username"/>
+			<div class="label">
+				if len(errors.Username) > 0 {
+					<span class="label-text text-error">{ errors.Username }</span>
+				}
+			</div>
+		</label>
+		<button class="btn btn-primary">setup account <i class="fa-solid fa-arrow-right"></i></button>
+	</form>
+}
+
 templ SignUpSuccess(email string) {
 	<div>Confirmation email has been sent to: <span class="text-success font-bold">{ email }</span></div>
 }

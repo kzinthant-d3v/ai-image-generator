@@ -2,9 +2,11 @@ package handler
 
 import (
 	"fmt"
+	"kzinthant-d3v/ai-image-generator/db"
 	"kzinthant-d3v/ai-image-generator/pkg/kit/validate"
 	"kzinthant-d3v/ai-image-generator/pkg/sb"
 	"kzinthant-d3v/ai-image-generator/pkg/utils"
+	"kzinthant-d3v/ai-image-generator/types"
 	"kzinthant-d3v/ai-image-generator/view/auth"
 	"net/http"
 	"os"
@@ -12,6 +14,10 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/nedpals/supabase-go"
 )
+
+func HandleAccountSetupIndex(w http.ResponseWriter, r *http.Request) error {
+	return render(r, w, auth.AccountSetup())
+}
 
 func HandleLogoutCreate(w http.ResponseWriter, r *http.Request) error {
 	// cookie := &http.Cookie{
@@ -132,4 +138,28 @@ func setAuthSession(w http.ResponseWriter, r *http.Request, accessToken string) 
 	session, _ := store.Get(r, "user")
 	session.Values["accessToken"] = accessToken
 	return session.Save(r, w)
+}
+
+func HandleAccountSetupCreate(w http.ResponseWriter, r *http.Request) error {
+	params := auth.AccountSetupParams{
+		Username: r.FormValue("username"),
+	}
+
+	var errors auth.AccountSetupErrors
+
+	if ok := validate.New(&params, validate.Fields{
+		"Username": validate.Rules(validate.Required, validate.Min(2), validate.Max(50)),
+	}).Validate(&errors); !ok {
+		return render(r, w, auth.AccountSetupForm(params, errors))
+	}
+	user := getAuthenticatedUser(r)
+	account := types.Account{
+		UserID:   user.ID,
+		Username: params.Username,
+	}
+	if err := db.CreateAccount(&account); err != nil {
+		return err
+	}
+
+	return hxRedirect(w, r, "/")
 }

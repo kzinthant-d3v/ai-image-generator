@@ -2,13 +2,17 @@ package handler
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
+	"kzinthant-d3v/ai-image-generator/db"
 	"kzinthant-d3v/ai-image-generator/pkg/sb"
 	"kzinthant-d3v/ai-image-generator/types"
 	"net/http"
 	"os"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/sessions"
 )
 
@@ -36,6 +40,31 @@ func WithAuth(next http.Handler) http.Handler {
 	}
 	return http.HandlerFunc(fn)
 }
+
+func WithAccountSetup(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		user := getAuthenticatedUser(r)
+		account, err := db.GetAccountByID(user.ID)
+		// The user has not setup his account yet.
+		// Hence, redirect him to /account/setup
+		if err != nil {
+			fmt.Println(err)
+			if errors.Is(err, sql.ErrNoRows) {
+				fmt.Println("there is some errors")
+				http.Redirect(w, r, "/account/setup", http.StatusSeeOther)
+				return
+			}
+			next.ServeHTTP(w, r)
+			return
+		}
+		fmt.Println("in here!!!!!")
+		user.Account = account
+		ctx := context.WithValue(r.Context(), types.UserContextKey, user)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	}
+	return http.HandlerFunc(fn)
+}
+
 func WithAuthUser(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(r.URL.Path, "/public") {
@@ -68,6 +97,7 @@ func WithAuthUser(next http.Handler) http.Handler {
 		}
 
 		user := types.AuthenticatedUser{
+			ID:       uuid.MustParse(res.ID),
 			Email:    res.Email,
 			LoggedIn: true,
 		}
